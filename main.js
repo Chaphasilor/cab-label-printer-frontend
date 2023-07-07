@@ -133,8 +133,8 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
-      <div class="p-0 grid justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl">
-        <div class="whitespace-pre-wrap">${() => localState.text}</div>
+      <div class="px-5 py-3 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl">
+        <div style="${() => `font-size: ${codes.getDynamicFontSize(localState.text) * 2}px`}" class="w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
       </div>
       <div class="grow shrink basis-0 ">Create simple text labels that can contain multiple lines</div>
     </div>

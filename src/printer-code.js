@@ -2,14 +2,14 @@
  * calculate font size based on number of lines and maximum number of characters per line
  * @param {string} text
  */
-function getDynamicFontSize(text) {
+export function getDynamicFontSize(text) {
   
   const lines = text.split(`\n`)
   const maxLineLength = Math.max(...lines.map(line => line.length))
   const maxFontSize = 10
   const minFontSize = 3
-  const fontSizeForLine = maxFontSize / (lines.length/2)
-  const fontSizeForLength = maxFontSize / (maxLineLength/4)
+  const fontSizeForLine = maxFontSize / (lines.length/2.5)
+  const fontSizeForLength = maxFontSize / (maxLineLength/5)
 
   let fontSize = Number(Math.min(maxFontSize, Math.max(minFontSize, Math.min(fontSizeForLine, fontSizeForLength))).toFixed(2))
 
