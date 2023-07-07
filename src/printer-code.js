@@ -61,12 +61,12 @@ A 1
  */
 export function generateQrCode(text, label = null, amount = 1) {
 
-  let fontSize = getDynamicFontSize(String(text))
+  let fontSize = getDynamicFontSize(String(label))
   console.log(`fontSize:`, fontSize)
 
   let content = label ? 
     `B 1.9,0.8,0,QRCODE+EL1,0.3;${text}
-T 1,9.5,0,5,pt4.8;${label}` :
+T 1,9.5,0,5,pt${fontSize};${label}` :
     `B 1.5,1.4,0,QRCODE+EL1,0.3;${text}`
   
   return `m m
@@ -74,7 +74,7 @@ J
 S l1;0.0,0.0,10,13,10
 O R
 ${content}
-A 1
+A ${amount}
 `
 }
 

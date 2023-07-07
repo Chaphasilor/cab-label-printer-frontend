@@ -18,22 +18,73 @@ const state = reactive({
   tabs: {},
 })
 
+function buildDialog({ trigger, content }) {
+
+  let internalState = reactive({
+    showContent: false,
+    dialogId: `dialog-${crypto.randomUUID().split(`-`)[0]}`,
+  })
+
+  // watch(() => internalState.showContent, (newValue) => {
+  //   let dialog = document.querySelector(`#${internalState.dialogId}`)
+
+  //   if (newValue) {
+  //     dialog?.showModal?.()
+  //   } else {
+  //     dialog?.close?.()
+  //   }
+  // })
+  
+  return html`
+    <button type="button" @click="${() => internalState.showContent = !internalState.showContent}">${() => trigger}</button>
+    ${() => internalState.showContent ? html`
+      <div class="fixed inset-0 grid content-center w-[100vw] h-[100vh] z-40 bg-black/20" @click="${() => internalState.showContent = false}">
+        <div class="z-50 grid w-full content-center p-8" id="${internalState.dialogId}">
+          <div class="mx-auto w-full sm:max-w-sm md:max-w-md min-h-[16rem]">
+            ${() => content}
+          </div>
+        </div>
+      </div>
+    ` : null}
+  `
+}
+
 const header = html`
   <header class="flex flex-col gap-6 p-6 md:rounded-br-[4rem] md:max-w-[75vw] lg:max-w-[60vw] bg-background-blue mb-10">
     <h1 class="font-semibold text-3xl text-dark-blue">EEL Small Label Printer</h1>
     <p class="">Used for i.e. printing QR codes that identify PCBs within the AOI</p>
   </header>
-  <button
-    class="absolute top-6 right-6 flex flex-row py-2 px-3 gap-2 bg-light-blue rounded-lg hover:bg-blue"
-    type="button"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-[1.5] text-text-blue" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-      <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path>
-      <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
-    </svg>
-    <span>Menu</span>
-  </button>
+
+  <div class="absolute top-6 right-6">
+    ${() => buildDialog({
+      trigger: html`
+        <button
+          class="flex flex-row py-2 px-3 gap-2 bg-light-blue rounded-lg hover:bg-blue"
+          type="button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-[1.5] text-text-blue" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path>
+            <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
+          </svg>
+          <span>Menu</span>
+        </button>
+      `,
+      content: html`
+        <div class="bg-background-blue p-8 rounded-lg flex flex-col gap-4 h-full">
+          <h2 class="text-lg font-semibold mb-2">Settings</h2>
+          <div class="flex flex-row gap-2">
+            <span>Backend:</span>
+            <select>
+              <option value="Test">Test</option>
+              <option value="Test2">Test2</option>
+            </select>
+          </div>
+        </div>
+      `
+    })}
+  </div>
+  
   `
 
 const nav = html`
@@ -195,7 +246,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   includeLabel: false,
   labelText: `Label`,
 }),
-(localState) => codes.generateQrCode(localState.text, localState.includeLabel ? localState.labelText : null, localState.amount),
+(localState) => html`${() => codes.generateQrCode(localState.text, localState.includeLabel ? localState.labelText : null, localState.amount)}`,
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
@@ -204,7 +255,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
           <img src="/qr.png" />
         </div>
         ${() => localState.includeLabel ? html`
-          <span class="text-xs font-normal -mb-1">${() => localState.labelText}</span>
+          <span style="${() => `font-size: ${codes.getDynamicFontSize(localState.labelText) * 2}px`}" class="text-xs font-normal -mb-1">${() => localState.labelText}</span>
         ` : null}
       </div>
       <div class="grow shrink basis-0 ">Create QR codes containing custom text, with an optional label below the QR code</div>
