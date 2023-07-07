@@ -67,14 +67,17 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     endId: 1,
     amount: 1,
     includePrefix: false,
-    prefixText: ``,
+    prefixText: `SN:`,
   }),
   (localState) => ``,
   (localState) => html`
     <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
-        <div class="p-0 grid justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl">
-          <img class="p-2 bg-white rounded-2xl flex-col justify-center items-center gap-2 inline-flex" src="https://via.placeholder.com/72x72" />
+        <div class="p-2 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
+          <div class="bg-white flex-shrink overflow-hidden aspect-square">
+            <img src="/qr.png" />
+          </div>
+          <span class="text-xs font-normal -mb-1">${() => localState.prefixText} ${() => localState.startId}</span>
         </div>
         <div class="grow shrink basis-0 ">Create a batch of QR codes containing continuous IDs, with an optional label below the QR code</div>
       </div>
@@ -179,14 +182,19 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   text: ``,
   amount: 1,
   includeLabel: false,
-  labelText: ``,
+  labelText: `Label`,
 }),
 (localState) => codes.generateQrCode(localState.text, localState.includeLabel ? localState.labelText : null, localState.amount),
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
-      <div class="p-0 grid justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl">
-        <img class="p-2 bg-white rounded-2xl flex-col justify-center items-center gap-2 inline-flex" src="https://via.placeholder.com/72x72" />
+      <div class="p-2 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
+        <div class="bg-white flex-shrink overflow-hidden aspect-square">
+          <img src="/qr.png" />
+        </div>
+        ${() => localState.includeLabel ? html`
+          <span class="text-xs font-normal -mb-1">${() => localState.labelText}</span>
+        ` : null}
       </div>
       <div class="grow shrink basis-0 ">Create QR codes containing custom text, with an optional label below the QR code</div>
     </div>
