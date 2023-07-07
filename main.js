@@ -23,6 +23,17 @@ const header = html`
     <h1 class="font-semibold text-3xl text-dark-blue">EEL Small Label Printer</h1>
     <p class="">Used for i.e. printing QR codes that identify PCBs within the AOI</p>
   </header>
+  <button
+    class="absolute top-6 right-6 flex flex-row py-2 px-3 gap-2 bg-light-blue rounded-lg hover:bg-blue"
+    type="button"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-[1.5] text-text-blue" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path>
+      <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
+    </svg>
+    <span>Menu</span>
+  </button>
   `
 
 const nav = html`
@@ -69,7 +80,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     includePrefix: false,
     prefixText: `SN:`,
   }),
-  (localState) => ``,
+  (localState) => html`${() => codes.generateBatchQrCode(localState.startId, localState.endId, localState.includePrefix ? localState.prefixText : null)}`,
   (localState) => html`
     <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
@@ -85,23 +96,23 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
         <div class="p-0 flex-col justify-start items-start gap-2 flex">
           <div class="text-xs">Start ID</div>
           <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.startId}" @input="${e => {
-            localState.startId = e.target.valueAsNumber
-            localState.amount = localState.endId - localState.startId + 1
+            localState.startId = e.target.value
+            localState.amount = Math.abs(localState.endId - localState.startId + 1)
           }}" />
         </div>
         <div class="p-0 justify-start items-center gap-4 inline-flex">
           <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
             <div class="text-xs">End ID (inclusive)</div>
             <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.endId}" @input="${e => {
-              localState.endId = e.target.valueAsNumber
-              localState.amount = localState.endId - localState.startId + 1
+              localState.endId = e.target.value
+              localState.amount = Math.abs(localState.endId - localState.startId + 1)
             }}" />
           </div>
           <div class="text-centertext-xs font-semibold">or</div>
           <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
             <div class="text-xs">Amount</div>
             <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
-              localState.amount = e.target.valueAsNumber
+              localState.amount =Math.abs( e.target.value)
               localState.endId = localState.startId + localState.amount - 1
             }}" />
           </div>
@@ -132,7 +143,7 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
   fontSize: 7,
   preview: ``,
 }),
-(localState) => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1),
+(localState) => html`${() => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1)}`,
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
@@ -253,10 +264,12 @@ function buildConfig(localState, previewFunction, body) {
 }
 
 const preview = html`
-  <pre class="relative border border-border rounded-2xl overflow-y-auto py-2 px-3">
+  <div class="relative border border-border rounded-2xl overflow-hidden h-full py-2 px-3">
+    <pre class="overflow-y-auto">
 ${() => state.tabs[state.nav]?.preview}
+    </pre>
     <button
-      class="absolute bottom-3 right-3 pl-3 hover:bg-blue bg-light-blue pr-4 active:bg-bluer text-text-blue py-2 rounded-lg justify-center items-center gap-2 flex"
+      class="absolute bottom-5 right-5 pl-3 hover:bg-blue bg-light-blue pr-4 active:bg-bluer text-text-blue py-2 rounded-lg justify-center items-center gap-2 flex"
       @click="${() => {
         navigator.clipboard.writeText(state.tabs[state.nav].preview)
       }}"
@@ -272,11 +285,11 @@ ${() => state.tabs[state.nav]?.preview}
       </svg>
       <span class="font-sans">Copy To Clipboard</span>
     </button>
-  </pre>
+  </div>  
 `
 
 const main = html`
-  <div class="mt-2 grid grid-cols-2 gap-2">
+  <div class="relative mt-2 grid grid-cols-2 gap-2 max-h-min">
     ${() => config}
     ${() => preview}
   </div>
@@ -288,7 +301,7 @@ html`
     ${() => nav}
     ${() => main}
   </div>
-  <div class="pb-40"></div>
+  <div class="pb-30"></div>
 `(document.querySelector(`#app`))
 
 

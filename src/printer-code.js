@@ -61,12 +61,12 @@ A 1
  */
 export function generateQrCode(text, label = null, amount = 1) {
 
-  let fontSize = getDynamicFontSize(text)
+  let fontSize = getDynamicFontSize(String(text))
   console.log(`fontSize:`, fontSize)
 
   let content = label ? 
     `B 1.9,0.8,0,QRCODE+EL1,0.3;${text}
-    T 1,9.5,0,5,pt4.8;${label}` :
+T 1,9.5,0,5,pt4.8;${label}` :
     `B 1.5,1.4,0,QRCODE+EL1,0.3;${text}`
   
   return `m m
@@ -76,4 +76,21 @@ O R
 ${content}
 A 1
 `
+}
+
+export function generateBatchQrCode(startId, endId, prefix = null) {
+
+  let content = ``
+
+  let increment = startId < endId
+  
+  for (let i = startId; increment ? (i <= endId) : (i >= endId); i += increment ? 1 : -1 ) {
+
+    content += generateQrCode(i, `${prefix ? `${prefix} ` : ``}${i}`, 1)
+    content += `\n`
+
+  }
+  
+  return content
+
 }
