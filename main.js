@@ -2,7 +2,7 @@ import './style.css'
 import { html, watch, reactive } from '@arrow-js/core'
 
 import * as codes from './src/printer-code'
-import { uploadFile } from './src/api'
+import API from './src/api'
 
 import javascriptLogo from './javascript.svg'
 import viteLogo from '/vite.svg'
@@ -21,7 +21,7 @@ const tabs = {
 const state = reactive({
   nav: tabs.PCB_QR_CODES,
   tabs: {},
-  backend: backendUrls.new,
+  api: new API(backendUrls.new),
 })
 
 function stopPropagation(f) {
@@ -93,8 +93,8 @@ const header = html`
             <span>Backend:</span>
             <select @change="${(e) => {
               console.log(`e:`, e)
-              state.backend = backendUrls[e.target.value]
-              console.log(`state.backend:`, state.backend)
+              state.api = new API(backendUrls[e.target.value])
+              console.log(`state.api:`, state.api)
             }}">
               <option value="new">New Node.js-based backend @ EELPC011</option>
               <option value="old">Old php-based backend @ poland.gsi.de</option>
@@ -129,7 +129,7 @@ function buildPrintButton() {
           state.tabs[state.nav].validate()
 
           console.log(`print job:`, state.tabs[state.nav].getCode())
-          uploadFile(state.tabs[state.nav].getCode())
+          state.api.uploadFile(state.tabs[state.nav].getCode())
         } catch (err) {
           alert(`Invalid input: ${err}`)
         }
