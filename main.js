@@ -38,7 +38,6 @@ function buildDialog({ trigger, content }) {
 
   let internalState = reactive({
     showContent: false,
-    dialogId: `dialog-${crypto.randomUUID().split(`-`)[0]}`,
   })
 
   // watch(() => internalState.showContent, (newValue) => {
@@ -55,7 +54,7 @@ function buildDialog({ trigger, content }) {
     <button type="button" @click="${() => internalState.showContent = !internalState.showContent}">${() => trigger}</button>
     ${() => internalState.showContent ? html`
       <div class="fixed inset-0 grid content-center w-[100vw] h-[100vh] z-40 bg-black/20" @click="${() => internalState.showContent = false}">
-        <div class="z-50 grid w-full content-center p-8" id="${internalState.dialogId}" @click="${stopPropagation()}">
+        <div class="z-50 grid w-full content-center p-8" @click="${stopPropagation()}">
           <div class="mx-auto w-full sm:max-w-sm md:max-w-md min-h-[16rem]">
             ${() => content}
           </div>
