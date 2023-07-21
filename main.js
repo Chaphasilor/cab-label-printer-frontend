@@ -8,7 +8,7 @@ import javascriptLogo from './javascript.svg'
 import viteLogo from '/vite.svg'
 
 const backendUrls = {
-  new: `http://localhost:3000`,
+  new: `http://eelpc011:3000`,
   old: `https://poland.gsi.de/labelPrinter/php`,
 }
 
