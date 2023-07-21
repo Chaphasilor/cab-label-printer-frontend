@@ -1,4 +1,5 @@
 export async function uploadFile(fileContents) {
+  console.log(`fileContents:`, fileContents)
   await (await fetch(`${import.meta.env.VITE_BACKEND_URL}/uploadFile`, {
     method: `POST`,
     headers: {

@@ -7,6 +7,11 @@ import { uploadFile } from './src/api'
 import javascriptLogo from './javascript.svg'
 import viteLogo from '/vite.svg'
 
+const backendUrls = {
+  new: `http://localhost:3000`,
+  old: `https://poland.gsi.de/labelPrinter/php`,
+}
+
 const tabs = {
   PCB_QR_CODES: `PCB QR Codes`,
   SIMPLE_TEXT: `Simple Text`,
@@ -16,7 +21,18 @@ const tabs = {
 const state = reactive({
   nav: tabs.PCB_QR_CODES,
   tabs: {},
+  backend: backendUrls.new,
 })
+
+function stopPropagation(f) {
+  if (!f || typeof f !== `function`) {
+    f = () => {}
+  }
+  return (e) => {
+    e.stopPropagation()
+    f(e)
+  }
+}
 
 function buildDialog({ trigger, content }) {
 
@@ -39,7 +55,7 @@ function buildDialog({ trigger, content }) {
     <button type="button" @click="${() => internalState.showContent = !internalState.showContent}">${() => trigger}</button>
     ${() => internalState.showContent ? html`
       <div class="fixed inset-0 grid content-center w-[100vw] h-[100vh] z-40 bg-black/20" @click="${() => internalState.showContent = false}">
-        <div class="z-50 grid w-full content-center p-8" id="${internalState.dialogId}">
+        <div class="z-50 grid w-full content-center p-8" id="${internalState.dialogId}" @click="${stopPropagation()}">
           <div class="mx-auto w-full sm:max-w-sm md:max-w-md min-h-[16rem]">
             ${() => content}
           </div>
@@ -75,9 +91,13 @@ const header = html`
           <h2 class="text-lg font-semibold mb-2">Settings</h2>
           <div class="flex flex-row gap-2">
             <span>Backend:</span>
-            <select>
-              <option value="Test">Test</option>
-              <option value="Test2">Test2</option>
+            <select @change="${(e) => {
+              console.log(`e:`, e)
+              state.backend = backendUrls[e.target.value]
+              console.log(`state.backend:`, state.backend)
+            }}">
+              <option value="new">New Node.js-based backend @ EELPC011</option>
+              <option value="old">Old php-based backend @ poland.gsi.de</option>
             </select>
           </div>
         </div>
@@ -105,8 +125,14 @@ function buildPrintButton() {
     <button
       class="pl-3 hover:bg-blue bg-light-blue pr-4 active:bg-bluer text-text-blue py-2 rounded-lg justify-center items-center gap-2 flex"
       @click="${() => {
-        console.log(`print job:`, state.tabs[state.nav].preview)
-        uploadFile(state.tabs[state.nav].preview)
+        try {
+          state.tabs[state.nav].validate()
+
+          console.log(`print job:`, state.tabs[state.nav].getCode())
+          uploadFile(state.tabs[state.nav].getCode())
+        } catch (err) {
+          alert(`Invalid input: ${err}`)
+        }
       }}"
     >
       <svg
@@ -131,15 +157,22 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     includePrefix: false,
     prefixText: `SN:`,
   }),
-  (localState) => html`${() => codes.generateBatchQrCode(localState.startId, localState.endId, localState.includePrefix ? localState.prefixText : null)}`,
+  (localState) => codes.generateBatchQrCode(localState.startId, localState.endId, localState.includePrefix ? localState.prefixText : null),
+  (localState) => {},
   (localState) => html`
     <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
-        <div class="p-2 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
+        <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
           <div class="bg-white flex-shrink overflow-hidden aspect-square">
             <img src="/qr.png" />
           </div>
-          <span class="text-xs font-normal -mb-1">${() => localState.prefixText} ${() => localState.startId}</span>
+          ${() => localState.includePrefix ? html`
+            <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.startId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.startId}`}</span>
+          ` : html`
+            <span style="${() => `font-size: ${codes.getDynamicFontSize(String(localState.startId)) * 2.6}px`}" class="leading-4 tracking-wider whitespace-nowrap font-semibold">${() => localState.startId}</span>
+          `
+          }
+          
         </div>
         <div class="grow shrink basis-0 ">Create a batch of QR codes containing continuous IDs, with an optional label below the QR code</div>
       </div>
@@ -192,14 +225,16 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
   text: `some\nsample\ntext`,
   manualFontSize: false,
   fontSize: 7,
-  preview: ``,
+  manualLineHeight: false,
+  lineHeight: 3,
 }),
-(localState) => html`${() => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1)}`,
+(localState) => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
+(localState) => {},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
-      <div class="px-5 py-3 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl">
-        <div style="${() => `font-size: ${codes.getDynamicFontSize(localState.text) * 2}px`}" class="w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
+      <div class="px-1.5 py-1 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
+        <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px; line-height: ${(localState.manualLineHeight ? localState.lineHeight : codes.getDynamicLineHeight(localState.text)) * 10}px`}" class="tracking-wider w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
       </div>
       <div class="grow shrink basis-0 ">Create simple text labels that can contain multiple lines</div>
     </div>
@@ -232,7 +267,29 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
           @input="${e => {
             localState.fontSize = e.target.valueAsNumber
           }}"
-      />
+        />
+      </div>
+    </div>
+    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualLineHeight && `border-gray-400`}`}">
+      <div class="p-0 justify-start items-center gap-2 inline-flex">
+        <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
+          console.log(`e:`, e)
+          localState.manualLineHeight = e.target.checked
+        }}" />
+        <label class="" for="${`${tabs.SIMPLE_TEXT}-label`}">Manually Set Line Height</label>
+      </div>
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `opacity-50`}`}">
+        <div class="text-xs">Line Height</div>
+        <input
+          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          type="number"
+          placeholder="3"
+          value="${() => localState.lineHeight}"
+          disabled="${() => !localState.manualLineHeight}"
+          @input="${e => {
+            localState.lineHeight = e.target.valueAsNumber
+          }}"
+        />
       </div>
     </div>
     ${buildPrintButton()}
@@ -246,7 +303,21 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   includeLabel: false,
   labelText: `Label`,
 }),
-(localState) => html`${() => codes.generateQrCode(localState.text, localState.includeLabel ? localState.labelText : null, localState.amount)}`,
+(localState) => codes.generateQrCode(localState.text, {
+  label: localState.includeLabel ? localState.labelText : null,
+  amount: localState.amount,
+  redundancyLevel: 1,
+  labelBold: true,
+}),
+(localState) => {
+  if (!localState.text || localState.text.length === 0) {
+    throw new Error(`Text must not be empty`)
+  } else if (localState.amount < 1) {
+    throw new Error(`Amount must be at least 1`)
+  } else if (localState.includeLabel && localState.labelText.length === 0) {
+    throw new Error(`Label text must not be empty if label is included`)
+  }
+},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
@@ -255,7 +326,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
           <img src="/qr.png" />
         </div>
         ${() => localState.includeLabel ? html`
-          <span style="${() => `font-size: ${codes.getDynamicFontSize(localState.labelText) * 2}px`}" class="text-xs font-normal -mb-1">${() => localState.labelText}</span>
+          <span style="${() => `font-size: ${codes.getDynamicFontSize(localState.labelText) *2.5}px`}" class="text-xs font-semibold -mb-1">${() => localState.labelText}</span>
         ` : null}
       </div>
       <div class="grow shrink basis-0 ">Create QR codes containing custom text, with an optional label below the QR code</div>
@@ -306,11 +377,13 @@ const config = html`
   ${() => state.tabs[state.nav]?.html}
 `
 
-function buildConfig(localState, previewFunction, body) {
+function buildConfig(localState, codeFunction, validator, body) {
   return {
     state: localState,
-    preview: previewFunction(localState),
+    preview: html`${() => codeFunction(localState)}`,
     html: body(localState),
+    validate: () => validator(localState),
+    getCode: () => codeFunction(localState),
   }
 }
 
@@ -322,7 +395,7 @@ ${() => state.tabs[state.nav]?.preview}
     <button
       class="absolute bottom-5 right-5 pl-3 hover:bg-blue bg-light-blue pr-4 active:bg-bluer text-text-blue py-2 rounded-lg justify-center items-center gap-2 flex"
       @click="${() => {
-        navigator.clipboard.writeText(state.tabs[state.nav].preview)
+        navigator.clipboard.writeText(state.tabs[state.nav].getCode())
       }}"
     >
       <svg
