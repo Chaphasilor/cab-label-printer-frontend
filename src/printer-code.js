@@ -48,6 +48,15 @@ export function getDynamicLineHeight(text, max) {
   
 }
 
+function createEmptyLabel() {
+  return `m m
+J
+${getLabelSize(labelProps)}
+O R
+A 1
+`
+}
+
 /**
  * 
  * sample code:
@@ -75,7 +84,7 @@ export function generateTextCode(text, amount, fontSize = 7, lineHeight = -1) {
   const linesCode = lines.map((line, i) => 
     `T 0.5,${(2 + lineHeight * i)},0,3,pt${fontSize};${line}`
   ).join(`\n`)
-  return `m m
+  return `${amount > 1 ? createEmptyLabel() : ``}m m
 J
 ${getLabelSize(labelProps)}
 O R
@@ -98,7 +107,7 @@ export function generateCenteredTextCode(text, amount, bold = true, fontSize = 7
   const linesCode = lines.map((line, i) => 
     `T 0.0,${topOffset},0,3,pt${fontSize}${bold ? `,b` : ``};${line}[J:c${maxWidth}]`
   ).join(`\n`)
-  return `m m
+  return `${amount > 1 ? createEmptyLabel() : ``}m m
 J
 ${getLabelSize(labelProps)}
 O R
@@ -136,7 +145,7 @@ T 0,9.0,0,3,pt${fontSize}${labelBold ? `,b` : ``};${label}[J:c${maxWidth}]
 
     // T 1,9.8,0,5,pt${fontSize},v;${label}[J:l${maxWidth}]
   
-  return `m m
+  return `${amount > 1 ? createEmptyLabel() : ``}m m
 J
 ${getLabelSize(labelProps)}
 O R
@@ -155,7 +164,7 @@ export function generateBatchQrCode(startId, endId, prefix = null) {
     return
   }
 
-  let content = ``
+  let content = Math.abs(startId - endId) > 1 ? createEmptyLabel() : ``
 
   let increment = startId < endId
   

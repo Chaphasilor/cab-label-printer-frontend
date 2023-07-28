@@ -198,7 +198,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     startId: 1,
     endId: 1,
     amount: 1,
-    includePrefix: false,
+    includePrefix: true,
     prefixText: `SN:`,
   }),
   (localState) => {
