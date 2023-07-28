@@ -124,7 +124,6 @@ export function generateQrCode(text, {
 }) {
 
   let fontSize = getDynamicFontSize(String(label), 7)
-  console.log(`fontSize:`, fontSize)
 
   const maxWidth = labelProps.wd - 0.5
 
@@ -147,6 +146,14 @@ A ${amount}
 }
 
 export function generateBatchQrCode(startId, endId, prefix = null) {
+
+  // convert reactive variables to numbers
+  startId = Number(startId)
+  endId = Number(endId)
+  
+  if (isNaN(startId) || isNaN(endId)) {
+    return
+  }
 
   let content = ``
 
