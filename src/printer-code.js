@@ -84,6 +84,29 @@ A 1
 `
 }
 
+export function generateCenteredTextCode(text, bold = true, fontSize = 7) {
+
+  if (fontSize === -1) {
+    fontSize = getDynamicFontSize(text, 11)
+  }
+  console.log(`fontSize:`, fontSize)
+  // const topOffset = (labelProps.ho + labelProps.yo*2) /2
+  const topOffset = 5.8
+  const maxWidth = labelProps.wd - 0.5
+
+  const lines = text.split(`\n`)
+  const linesCode = lines.map((line, i) => 
+    `T 0.0,${topOffset},0,3,pt${fontSize}${bold ? `,b` : ``};${line}[J:c${maxWidth}]`
+  ).join(`\n`)
+  return `m m
+J
+${getLabelSize(labelProps)}
+O R
+${linesCode}
+A 1
+`
+}
+
 /**
  * 
  * sample code:

@@ -1,28 +1,45 @@
 import './style.css'
+
 import { html, watch, reactive } from '@arrow-js/core'
 
 import * as codes from './src/printer-code'
+import Router from './src/router'
 import API from './src/api'
 
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
+import qr from './public/qr.png'
 
-const backendUrls = {
-  new: `http://eelpc011:3000`,
-  old: `https://poland.gsi.de/labelPrinter/php`,
+const backends = {
+  new: {
+    baseUrl: `http://eelpc011:3000`,
+    extension: ``,
+  },
+  old: {
+    baseUrl: `http://poland.gsi.de/labelPrinter/php`,
+    extension: `.php`,
+  },
+  local: {
+    baseUrl: `http://localhost:3000`,
+    extension: ``,
+  },
 }
 
 const tabs = {
   PCB_QR_CODES: `PCB QR Codes`,
   SIMPLE_TEXT: `Simple Text`,
+  MULTI_LINE_TEXT: `Multi-line Text`,
   QR_CODE: `QR Code`,
 }
 
 const state = reactive({
   nav: tabs.PCB_QR_CODES,
   tabs: {},
-  api: new API(backendUrls.new),
+  api: new API(backends.old),
 })
+
+console.log(`tabs:`, tabs)
+const router = new Router(state, tabs)
+
+router.restore()
 
 function stopPropagation(f) {
   if (!f || typeof f !== `function`) {
@@ -92,11 +109,12 @@ const header = html`
             <span>Backend:</span>
             <select @change="${(e) => {
               console.log(`e:`, e)
-              state.api = new API(backendUrls[e.target.value])
+              state.api = new API(backends[e.target.value])
               console.log(`state.api:`, state.api)
             }}">
               <option value="new">New Node.js-based backend @ EELPC011</option>
               <option value="old">Old php-based backend @ poland.gsi.de</option>
+              <option value="local">Local Node.js backend at port 3000</option>
             </select>
           </div>
         </div>
@@ -111,7 +129,7 @@ const nav = html`
     ${() => Object.values(tabs).map(tab => html`
       <button
         class="${() => `items-center p-3 text-center rounded-xl ${state.nav === tab ? `bg-dark-blue text-white font-bold` : `font-semibold text-text-blue bg-light-blue hover:bg-blue`}`}"
-        @click="${() => state.nav = tab}"
+        @click="${() => router.to(tab)}"
       >
         ${tab}
       </button>
@@ -163,7 +181,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
       <div class="flex flex-row items-center gap-8 w-full">
         <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
           <div class="bg-white flex-shrink overflow-hidden aspect-square">
-            <img src="/qr.png" />
+            <img src="${qr}" />
           </div>
           ${() => localState.includePrefix ? html`
             <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.startId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.startId}`}</span>
@@ -221,31 +239,39 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
 )
 
 state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
-  text: `some\nsample\ntext`,
+  text: `text`,
+  bold: true,
   manualFontSize: false,
   fontSize: 7,
-  manualLineHeight: false,
-  lineHeight: 3,
 }),
-(localState) => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
+(localState) => codes.generateCenteredTextCode(localState.text, localState.bold, localState.manualFontSize ? localState.fontSize : -1),
 (localState) => {},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
-      <div class="px-1.5 py-1 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
-        <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px; line-height: ${(localState.manualLineHeight ? localState.lineHeight : codes.getDynamicLineHeight(localState.text)) * 10}px`}" class="tracking-wider w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
+      <div class="px-1.5 py-1 flex justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
+        <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px;`}" class="tracking-wider w-full text-center flex-grow whitespace-pre-wrap">${() => localState.text}</div>
       </div>
       <div class="grow shrink basis-0 ">Create simple text labels that can contain multiple lines</div>
     </div>
     <div class="p-0 flex-col justify-start items-start gap-2 flex">
       <div class="text-xs">Text</div>
-      <textarea
-        class="w-48 min-h-[6rem] overflow-hidden text-opacity-60 resize px-4 py-2 bg-white rounded-lg border border-black"
-        placeholder="some\nsample\ntext"
+      <input
+        class="w-48 overflow-hidden text-opacity-60 resize px-4 py-2 bg-white rounded-lg border border-black"
+        placeholder="text"
+        type="text"
+        value="${() => localState.text}"
         @input="${e => {
           localState.text = e.target.value
         }}"
-      >${localState.text}</textarea>
+      />
+    </div>
+    <div class="p-0 justify-start items-center gap-2 inline-flex">
+      <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.bold}" @input="${e => {
+        console.log(`e:`, e)
+        localState.bold = e.target.checked
+      }}" />
+      <label class="" for="${`${tabs.SIMPLE_TEXT}-label`}">Bold Text</label>
     </div>
     <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualFontSize && `border-gray-400`}`}">
       <div class="p-0 justify-start items-center gap-2 inline-flex">
@@ -296,6 +322,82 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
 `
 )
 
+state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
+  text: `some\nsample\ntext`,
+  manualFontSize: false,
+  fontSize: 7,
+  manualLineHeight: false,
+  lineHeight: 3,
+}),
+(localState) => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
+(localState) => {},
+(localState) => html`
+  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
+    <div class="flex flex-row items-center gap-8 w-full">
+      <div class="px-1.5 py-1 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
+        <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px; line-height: ${(localState.manualLineHeight ? localState.lineHeight : codes.getDynamicLineHeight(localState.text)) * 10}px`}" class="tracking-wider w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
+      </div>
+      <div class="grow shrink basis-0 ">Create multi-line text labels that can contain multiple lines</div>
+    </div>
+    <div class="p-0 flex-col justify-start items-start gap-2 flex">
+      <div class="text-xs">Text</div>
+      <textarea
+        class="w-48 min-h-[6rem] overflow-hidden text-opacity-60 resize px-4 py-2 bg-white rounded-lg border border-black"
+        placeholder="some\nsample\ntext"
+        @input="${e => {
+          localState.text = e.target.value
+        }}"
+      >${localState.text}</textarea>
+    </div>
+    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualFontSize && `border-gray-400`}`}">
+      <div class="p-0 justify-start items-center gap-2 inline-flex">
+        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualFontSize}" @input="${e => {
+          console.log(`e:`, e)
+          localState.manualFontSize = e.target.checked
+        }}" />
+        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-label`}">Manually Set Font Size</label>
+      </div>
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `opacity-50`}`}">
+        <div class="text-xs">Font Size</div>
+        <input
+          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          type="number"
+          placeholder="6"
+          value="${() => localState.fontSize}"
+          disabled="${() => !localState.manualFontSize}"
+          @input="${e => {
+            localState.fontSize = e.target.valueAsNumber
+          }}"
+        />
+      </div>
+    </div>
+    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualLineHeight && `border-gray-400`}`}">
+      <div class="p-0 justify-start items-center gap-2 inline-flex">
+        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
+          console.log(`e:`, e)
+          localState.manualLineHeight = e.target.checked
+        }}" />
+        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-label`}">Manually Set Line Height</label>
+      </div>
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `opacity-50`}`}">
+        <div class="text-xs">Line Height</div>
+        <input
+          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          type="number"
+          placeholder="3"
+          value="${() => localState.lineHeight}"
+          disabled="${() => !localState.manualLineHeight}"
+          @input="${e => {
+            localState.lineHeight = e.target.valueAsNumber
+          }}"
+        />
+      </div>
+    </div>
+    ${buildPrintButton()}
+  </div>
+`
+)
+
 state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   text: ``,
   amount: 1,
@@ -322,7 +424,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
     <div class="flex flex-row items-center gap-8 w-full">
       <div class="p-2 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
         <div class="bg-white flex-shrink overflow-hidden aspect-square">
-          <img src="/qr.png" />
+          <img src="${qr}" />
         </div>
         ${() => localState.includeLabel ? html`
           <span style="${() => `font-size: ${codes.getDynamicFontSize(localState.labelText) *2.5}px`}" class="text-xs font-semibold -mb-1">${() => localState.labelText}</span>
@@ -388,12 +490,16 @@ function buildConfig(localState, codeFunction, validator, body) {
 
 const preview = html`
   <div class="relative border border-border rounded-2xl overflow-hidden h-full py-2 px-3">
-    <pre class="overflow-y-auto">
+    <pre class="overflow-y-auto max-h-[70dvh]">
 ${() => state.tabs[state.nav]?.preview}
     </pre>
     <button
       class="absolute bottom-5 right-5 pl-3 hover:bg-blue bg-light-blue pr-4 active:bg-bluer text-text-blue py-2 rounded-lg justify-center items-center gap-2 flex"
       @click="${() => {
+        if (!navigator.clipboard) {
+          alert(`Cannot write to clipboard, requires HTTPS`)
+          return
+        }
         navigator.clipboard.writeText(state.tabs[state.nav].getCode())
       }}"
     >
@@ -412,7 +518,7 @@ ${() => state.tabs[state.nav]?.preview}
 `
 
 const main = html`
-  <div class="relative mt-2 grid grid-cols-2 gap-2 max-h-min">
+  <div class="relative mt-2 grid grid-cols-2 gap-2 h-auto pb-20">
     ${() => config}
     ${() => preview}
   </div>
@@ -426,5 +532,3 @@ html`
   </div>
   <div class="pb-30"></div>
 `(document.querySelector(`#app`))
-
-
