@@ -177,7 +177,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
   (localState) => codes.generateBatchQrCode(localState.startId, localState.endId, localState.includePrefix ? localState.prefixText : null),
   (localState) => {},
   (localState) => html`
-    <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
+    <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
         <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
           <div class="bg-white flex-shrink overflow-hidden aspect-square">
@@ -218,14 +218,14 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
             }}" />
           </div>
         </div>
-        <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.includeLabel && `border-gray-400`}`}">
+        <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.includePrefix && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
           <div class="p-0 justify-start items-center gap-2 inline-flex">
-            <input type="checkbox" class="w-4 h-4" id="${`${tabs.PCB_QR_CODES}-label`}" checked="${() => localState.includePrefix}" @input="${(e) => {
+            <input type="checkbox" class="w-4 h-4" id="${`${tabs.PCB_QR_CODES}-prefix`}" checked="${() => localState.includePrefix}" @input="${(e) => {
               localState.includePrefix = e.target.checked
             }}" />
-            <label class="" for="${`${tabs.PCB_QR_CODES}-label`}">Include Prefix</label>
+            <label class="" for="${`${tabs.PCB_QR_CODES}-prefix`}">Include Prefix</label>
           </div>
-          <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.includePrefix && `opacity-50`}`}">
+          <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.includePrefix && `hidden`}`}">
             <div class="text-xs">Prefix Text</div>
             <input type="text" placeholder="SN: " class="w-48 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" value="${() => localState.prefixText}" disabled="${() => !localState.includePrefix}" @input="${(e) => {
               localState.prefixText = e.target.value
@@ -240,14 +240,15 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
 
 state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
   text: `text`,
+  amount: 1,
   bold: true,
   manualFontSize: false,
   fontSize: 7,
 }),
-(localState) => codes.generateCenteredTextCode(localState.text, localState.bold, localState.manualFontSize ? localState.fontSize : -1),
+(localState) => codes.generateCenteredTextCode(localState.text, localState.amount, localState.bold, localState.manualFontSize ? localState.fontSize : -1),
 (localState) => {},
 (localState) => html`
-  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
+  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
       <div class="px-1.5 py-1 flex justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
         <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px;`}" class="tracking-wider w-full text-center flex-grow whitespace-pre-wrap">${() => localState.text}</div>
@@ -266,22 +267,29 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
         }}"
       />
     </div>
+    <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
+      <div class="text-xs">Amount</div>
+      <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+        localState.amount = e.target.valueAsNumber
+        localState.endId = localState.startId + localState.amount
+      }}" />
+    </div>
     <div class="p-0 justify-start items-center gap-2 inline-flex">
-      <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.bold}" @input="${e => {
+      <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-bold-text`}" class="w-4 h-4" checked="${() => localState.bold}" @input="${e => {
         console.log(`e:`, e)
         localState.bold = e.target.checked
       }}" />
-      <label class="" for="${`${tabs.SIMPLE_TEXT}-label`}">Bold Text</label>
+      <label class="" for="${`${tabs.SIMPLE_TEXT}-bold-text`}">Bold Text</label>
     </div>
-    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualFontSize && `border-gray-400`}`}">
+    <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.manualFontSize && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
       <div class="p-0 justify-start items-center gap-2 inline-flex">
-        <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualFontSize}" @input="${e => {
+        <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-manual-font-size`}" class="w-4 h-4" checked="${() => localState.manualFontSize}" @input="${e => {
           console.log(`e:`, e)
           localState.manualFontSize = e.target.checked
         }}" />
-        <label class="" for="${`${tabs.SIMPLE_TEXT}-label`}">Manually Set Font Size</label>
+        <label class="" for="${`${tabs.SIMPLE_TEXT}-manual-font-size`}">Manually Set Font Size</label>
       </div>
-      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `opacity-50`}`}">
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `hidden`}`}">
         <div class="text-xs">Font Size</div>
         <input
           class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
@@ -295,15 +303,15 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
         />
       </div>
     </div>
-    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualLineHeight && `border-gray-400`}`}">
+    <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.manualLineHeight && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
       <div class="p-0 justify-start items-center gap-2 inline-flex">
-        <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
+        <input type="checkbox" id="${`${tabs.SIMPLE_TEXT}-manual-line-height`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
           console.log(`e:`, e)
           localState.manualLineHeight = e.target.checked
         }}" />
-        <label class="" for="${`${tabs.SIMPLE_TEXT}-label`}">Manually Set Line Height</label>
+        <label class="" for="${`${tabs.SIMPLE_TEXT}-manual-line-height`}">Manually Set Line Height</label>
       </div>
-      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `opacity-50`}`}">
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `hidden`}`}">
         <div class="text-xs">Line Height</div>
         <input
           class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
@@ -324,15 +332,16 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
 
 state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
   text: `some\nsample\ntext`,
+  amount: 1,
   manualFontSize: false,
   fontSize: 7,
   manualLineHeight: false,
   lineHeight: 3,
 }),
-(localState) => codes.generateTextCode(localState.text, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
+(localState) => codes.generateTextCode(localState.text, localState.amount, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
 (localState) => {},
 (localState) => html`
-  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
+  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
       <div class="px-1.5 py-1 flex justify-center items-start gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
         <div style="${() => `font-size: ${(localState.manualFontSize ? localState.fontSize : codes.getDynamicFontSize(localState.text)) * 3.2}px; line-height: ${(localState.manualLineHeight ? localState.lineHeight : codes.getDynamicLineHeight(localState.text)) * 10}px`}" class="tracking-wider w-full h-full flex-grow whitespace-pre-wrap">${() => localState.text}</div>
@@ -349,15 +358,22 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
         }}"
       >${localState.text}</textarea>
     </div>
-    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualFontSize && `border-gray-400`}`}">
+    <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
+      <div class="text-xs">Amount</div>
+      <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+        localState.amount = e.target.valueAsNumber
+        localState.endId = localState.startId + localState.amount
+      }}" />
+    </div>
+    <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.manualFontSize && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
       <div class="p-0 justify-start items-center gap-2 inline-flex">
-        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualFontSize}" @input="${e => {
+        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-manual-font-size`}" class="w-4 h-4" checked="${() => localState.manualFontSize}" @input="${e => {
           console.log(`e:`, e)
           localState.manualFontSize = e.target.checked
         }}" />
-        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-label`}">Manually Set Font Size</label>
+        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-manual-font-size`}">Manually Set Font Size</label>
       </div>
-      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `opacity-50`}`}">
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `hidden`}`}">
         <div class="text-xs">Font Size</div>
         <input
           class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
@@ -371,15 +387,15 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
         />
       </div>
     </div>
-    <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.manualLineHeight && `border-gray-400`}`}">
+    <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.manualLineHeight && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
       <div class="p-0 justify-start items-center gap-2 inline-flex">
-        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-label`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
+        <input type="checkbox" id="${`${tabs.MULTI_LINE_TEXT}-manual-line-height`}" class="w-4 h-4" checked="${() => localState.manualLineHeight}" @input="${e => {
           console.log(`e:`, e)
           localState.manualLineHeight = e.target.checked
         }}" />
-        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-label`}">Manually Set Line Height</label>
+        <label class="" for="${`${tabs.MULTI_LINE_TEXT}-manual-line-height`}">Manually Set Line Height</label>
       </div>
-      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `opacity-50`}`}">
+      <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `hidden`}`}">
         <div class="text-xs">Line Height</div>
         <input
           class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
@@ -420,7 +436,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   }
 },
 (localState) => html`
-  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-8 inline-flex">
+  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
       <div class="p-2 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
         <div class="bg-white flex-shrink overflow-hidden aspect-square">
@@ -450,14 +466,14 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
           localState.endId = localState.startId + localState.amount
         }}" />
       </div>
-      <div class="${() => `pl-2 pr-4 pt-2 pb-4 rounded-lg border border-black flex-col justify-start items-start gap-3 flex ${!localState.includeLabel && `border-gray-400`}`}">
+      <div class="${() => `rounded-lg flex-col justify-start items-start gap-3 flex ${localState.includeLabel && `border border-black pl-2 pr-4 pt-2 pb-4`}`}">
         <div class="p-0 justify-start items-center gap-2 inline-flex">
           <input type="checkbox" class="w-4 h-4" id="${`${tabs.QR_CODE}-label`}" checked="${() => localState.includeLabel}" @input="${(e) => {
             localState.includeLabel = e.target.checked
           }}" />
           <label class="" for="${`${tabs.QR_CODE}-label`}">Include Label</label>
         </div>
-        <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.includeLabel && `opacity-50`}`}">
+        <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.includeLabel && `hidden`}`}">
           <div class="text-xs">Label Text</div>
           <input type="text" placeholder="Label" class="w-48 text-opacity-60 px-4 py-2 bg-white rounded-lg disabled:cursor-not-allowed border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.labelText}" disabled="${() => !localState.includeLabel}" @input="${(e) => {
             localState.labelText = e.target.value

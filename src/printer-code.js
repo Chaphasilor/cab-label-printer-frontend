@@ -61,7 +61,7 @@ export function getDynamicLineHeight(text, max) {
  * @param {Number} fontSize 
  * @returns 
  */
-export function generateTextCode(text, fontSize = 7, lineHeight = -1) {
+export function generateTextCode(text, amount, fontSize = 7, lineHeight = -1) {
 
   if (fontSize === -1) {
     fontSize = getDynamicFontSize(text)
@@ -80,11 +80,11 @@ J
 ${getLabelSize(labelProps)}
 O R
 ${linesCode}
-A 1
+A ${amount}
 `
 }
 
-export function generateCenteredTextCode(text, bold = true, fontSize = 7) {
+export function generateCenteredTextCode(text, amount, bold = true, fontSize = 7) {
 
   if (fontSize === -1) {
     fontSize = getDynamicFontSize(text, 11)
@@ -103,7 +103,7 @@ J
 ${getLabelSize(labelProps)}
 O R
 ${linesCode}
-A 1
+A ${amount}
 `
 }
 
