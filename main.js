@@ -210,28 +210,40 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
         <div class="flex flex-col gap-1 items-center">
-          <div class="flex flex-row gap-2">
-            <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
-              <div class="bg-white flex-shrink overflow-hidden aspect-square">
-                <img src="${qr}" />
+          <div class="flex flex-row items-center gap-2">
+            <div class="flex flex-col items-center gap-0.5">
+              <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
+                <div class="bg-white flex-shrink overflow-hidden aspect-square">
+                  <img src="${qr}" />
+                </div>
+                ${() => localState.includePrefix ? html`
+                  <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.startId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.startId}`}</span>
+                ` : html`
+                  <span style="${() => `font-size: ${codes.getDynamicFontSize(String(localState.startId)) * 2.6}px`}" class="leading-4 tracking-wider whitespace-nowrap font-semibold">${() => localState.startId}</span>
+                `
+                }
               </div>
-              ${() => localState.includePrefix ? html`
-                <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.startId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.startId}`}</span>
-              ` : html`
-                <span style="${() => `font-size: ${codes.getDynamicFontSize(String(localState.startId)) * 2.6}px`}" class="leading-4 tracking-wider whitespace-nowrap font-semibold">${() => localState.startId}</span>
-              `
-              }
+              <span class="text-xs">First Label</span>
             </div>
-            <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
-              <div class="bg-white flex-shrink overflow-hidden aspect-square">
-                <img src="${qr}" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-big-right-lines" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path d="M12 9v-3.586a1 1 0 0 1 1.707 -.707l6.586 6.586a1 1 0 0 1 0 1.414l-6.586 6.586a1 1 0 0 1 -1.707 -.707v-3.586h-3v-6h3z"></path>
+              <path d="M3 9v6"></path>
+              <path d="M6 9v6"></path>
+            </svg>
+            <div class="flex flex-col items-center gap-0.5">
+              <div class="px-0.5 py-1 flex flex-col justify-center overflow-hidden items-center gap-0.5 w-24 h-24 font-medium bg-white rounded-xl">
+                <div class="bg-white flex-shrink overflow-hidden aspect-square">
+                  <img src="${qr}" />
+                </div>
+                ${() => localState.includePrefix ? html`
+                  <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.endId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.endId}`}</span>
+                ` : html`
+                  <span style="${() => `font-size: ${codes.getDynamicFontSize(String(localState.endId)) * 2.6}px`}" class="leading-4 tracking-wider whitespace-nowrap font-semibold">${() => localState.endId}</span>
+                `
+                }
               </div>
-              ${() => localState.includePrefix ? html`
-                <span style="${() => `font-size: ${codes.getDynamicFontSize(`${localState.prefixText} ${localState.endId}`) * 2.6}px`}" class="leading-4 tracking-wide whitespace-nowrap font-semibold">${() => `${localState.prefixText} ${localState.endId}`}</span>
-              ` : html`
-                <span style="${() => `font-size: ${codes.getDynamicFontSize(String(localState.endId)) * 2.6}px`}" class="leading-4 tracking-wider whitespace-nowrap font-semibold">${() => localState.endId}</span>
-              `
-              }
+              <span class="text-xs">Last Label</span>
             </div>
           </div>
           <span class="text-sm">Preview</span>
@@ -241,7 +253,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
       <div class="p-0 flex-col justify-start items-start gap-4 flex">
         <div class="p-0 flex-col justify-start items-start gap-2 flex">
           <div class="text-xs">Start ID</div>
-          <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.startId}" @input="${e => {
+          <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.startId}" @input="${e => {
             localState.startId = e.target.valueAsNumber
             localState.amount = Math.abs(localState.endId - localState.startId + 1)
           }}" />
@@ -249,7 +261,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
         <div class="p-0 justify-start items-center gap-4 inline-flex">
           <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
             <div class="text-xs">End ID (inclusive)</div>
-            <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.endId}" @input="${e => {
+            <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.endId}" @input="${e => {
               localState.endId = e.target.valueAsNumber
               localState.amount = Math.abs(localState.endId - localState.startId + 1)
             }}" />
@@ -257,7 +269,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
           <div class="text-centertext-xs font-semibold">or</div>
           <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
             <div class="text-xs">Amount</div>
-            <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+            <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
               localState.amount = Math.abs(e.target.valueAsNumber)
               localState.endId = localState.startId + localState.amount - 1
             }}" />
@@ -317,7 +329,7 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
     </div>
     <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
       <div class="text-xs">Amount</div>
-      <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+      <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
         localState.amount = e.target.valueAsNumber
         localState.endId = localState.startId + localState.amount
       }}" />
@@ -340,7 +352,7 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
       <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `hidden`}`}">
         <div class="text-xs">Font Size</div>
         <input
-          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
           type="number"
           placeholder="6"
           value="${() => localState.fontSize}"
@@ -362,7 +374,7 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
       <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `hidden`}`}">
         <div class="text-xs">Line Height</div>
         <input
-          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
           type="number"
           placeholder="3"
           value="${() => localState.lineHeight}"
@@ -411,7 +423,7 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
     </div>
     <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
       <div class="text-xs">Amount</div>
-      <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+      <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
         localState.amount = e.target.valueAsNumber
         localState.endId = localState.startId + localState.amount
       }}" />
@@ -427,7 +439,7 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
       <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualFontSize && `hidden`}`}">
         <div class="text-xs">Font Size</div>
         <input
-          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
           type="number"
           placeholder="6"
           value="${() => localState.fontSize}"
@@ -449,7 +461,7 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
       <div class="${() => `pl-8 flex-col justify-start items-start gap-2 flex ${!localState.manualLineHeight && `hidden`}`}">
         <div class="text-xs">Line Height</div>
         <input
-          class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
+          class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black disabled:cursor-not-allowed justify-start items-start gap-2 inline-flex" 
           type="number"
           placeholder="3"
           value="${() => localState.lineHeight}"
@@ -515,7 +527,7 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
       </div>
       <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
         <div class="text-xs">Amount</div>
-        <input type="number" placeholder="15" class="w-20 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
+        <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
           localState.amount = e.target.valueAsNumber
           localState.endId = localState.startId + localState.amount
         }}" />
