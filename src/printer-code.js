@@ -57,6 +57,16 @@ A 1
 `
 }
 
+function createWarmupLabel() {
+  return `m m
+J
+${getLabelSize(labelProps)}
+T 0.5,4,0,3,pt5;WARMUP
+O R
+A 1
+`
+}
+
 /**
  * 
  * sample code:
@@ -154,7 +164,7 @@ A ${amount}
 `
 }
 
-export function generateBatchQrCode(startId, endId, prefix = null) {
+export function generateBatchQrCode(startId, endId, prefix = null, redundancyLevel = 1) {
 
   // convert reactive variables to numbers
   startId = Number(startId)
@@ -164,23 +174,38 @@ export function generateBatchQrCode(startId, endId, prefix = null) {
     return
   }
 
-  let content = Math.abs(startId - endId) > 1 ? createEmptyLabel() : ``
-
+  let labelBold = true
+  
   let increment = startId < endId
+
+  let amount = Math.abs(endId - startId) + 1
+
+  let longestIdText = String(startId).length > String(endId).length ? String(startId) : String(endId)
+
+  let idGenerator = `[SER:${startId},${increment ? `1` : `-1`},1]`
+
+  let labelText = `${prefix ? `${prefix} ` : ``}${idGenerator}`
   
-  for (let i = startId; increment ? (i <= endId) : (i >= endId); i += increment ? 1 : -1 ) {
-
-    // content += generateQrCode(i, `${prefix ? `${prefix} ` : ``}${i}`, 1)
-    content += generateQrCode(i, {
-      label: `${prefix ? `${prefix} ` : ``}${i}`,
-      amount: 1,
-      redundancyLevel: 3,
-      labelBold: true,
-    })
-    content += `\n`
-
-  }
+  let fontSize = getDynamicFontSize(`${prefix ? `${prefix} ` : ``}${longestIdText}`, 7)
   
-  return content
+  const maxWidth = labelProps.wd - 0.5
 
+  let content = `B 1.6,0.5,0,QRCODE+EL${redundancyLevel},0.3;${idGenerator}[J:c${maxWidth}]
+T 0,9.0,0,3,pt${fontSize}${labelBold ? `,b` : ``};${labelText}[J:c${maxWidth}]
+`
+    // T 1,9.8,0,5,pt${fontSize},v;${label}[J:l${maxWidth}]
+  
+  return `${amount > 1 ? createWarmupLabel() : ``}m m
+J
+${getLabelSize(labelProps)}
+O R
+${content}
+A ${amount}
+`
+}
+
+export function generateCustomCode(content) {
+
+  return `${content}
+`
 }

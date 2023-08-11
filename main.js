@@ -37,6 +37,7 @@ const tabs = {
   SIMPLE_TEXT: `Simple Text`,
   MULTI_LINE_TEXT: `Multi-line Text`,
   QR_CODE: `QR Code`,
+  CUSTOM: `Custom Label`,
 }
 
 const state = reactive({
@@ -252,18 +253,24 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
       </div>
       <div class="p-0 flex-col justify-start items-start gap-4 flex">
         <div class="p-0 flex-col justify-start items-start gap-2 flex">
-          <div class="text-xs">Start ID</div>
+          <div class="text-xs">Start ID (>= 0)</div>
           <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.startId}" @input="${e => {
-            localState.startId = e.target.valueAsNumber
-            localState.amount = Math.abs(localState.endId - localState.startId + 1)
+            localState.startId = Math.max(0, e.target.valueAsNumber)
+            if (localState.startId != e.target.valueAsNumber) {
+              e.target.value = localState.startId
+            }
+            localState.amount = Math.abs(localState.endId - localState.startId) + 1
           }}" />
         </div>
         <div class="p-0 justify-start items-center gap-4 inline-flex">
           <div class="p-0 flex-col justify-start items-start gap-2 inline-flex">
-            <div class="text-xs">End ID (inclusive)</div>
+            <div class="text-xs">End ID (inclusive, >= 0)</div>
             <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.endId}" @input="${e => {
-              localState.endId = e.target.valueAsNumber
-              localState.amount = Math.abs(localState.endId - localState.startId + 1)
+              localState.endId = Math.max(0, e.target.valueAsNumber)
+              if (localState.endId != e.target.valueAsNumber) {
+                e.target.value = localState.endId
+              }
+              localState.amount = Math.abs(localState.endId - localState.startId) + 1
             }}" />
           </div>
           <div class="text-centertext-xs font-semibold">or</div>
@@ -271,7 +278,7 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
             <div class="text-xs">Amount</div>
             <input type="number" placeholder="15" class="w-28 text-opacity-60 px-4 py-2 bg-white rounded-lg border border-black justify-start items-start gap-2 inline-flex" value="${() => localState.amount}" @input="${e => {
               localState.amount = Math.abs(e.target.valueAsNumber)
-              localState.endId = localState.startId + localState.amount - 1
+              localState.endId = Math.max(0, localState.startId + localState.amount - 1)
             }}" />
           </div>
         </div>
@@ -546,6 +553,42 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
           }}" />
         </div>
       </div>
+    </div>
+    ${buildPrintButton()}
+  </div>
+`
+)
+
+state.tabs[tabs.CUSTOM] = buildConfig(reactive({
+  content: `m m
+J
+S l1;0,0.2,9.4,12.4,9.5
+O R
+T 0.0,5.8,0,3,pt11,b;text[J:c9]
+A 1`,
+}),
+(localState) => codes.generateCustomCode(localState.content),
+(localState) => {},
+(localState) => html`
+  <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
+    <div class="flex flex-row items-center gap-8 w-full">
+      <div class="flex flex-col gap-1 items-center">
+        <div class="px-1.5 py-1 flex justify-center items-center gap-8 w-24 font-medium aspect-square bg-white rounded-xl overflow-hidden">
+          <div class="italic w-full text-center flex-grow whitespace-pre-wrap">preview not available</div>
+        </div>
+        <span class="text-sm">Preview</span>
+      </div>
+      <div class="grow shrink basis-0 ">Create simple text labels that can contain multiple lines</div>
+    </div>
+    <div class="w-full p-0 flex-col justify-start items-start gap-2 flex">
+      <div class="text-xs">Content</div>
+      <textarea
+        class="w-full min-h-[12rem] overflow-auto text-opacity-60 resize px-1 py-0.25 bg-white rounded-lg border border-black"
+        placeholder="some\nsample\ntext"
+        @input="${e => {
+          localState.content = e.target.value
+        }}"
+      >${localState.content}</textarea>
     </div>
     ${buildPrintButton()}
   </div>
