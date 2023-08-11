@@ -44,6 +44,7 @@ const state = reactive({
   nav: tabs.PCB_QR_CODES,
   tabs: {},
   backend: `remote`,
+  maxSafeAmount: 99,
   api: new API(backends.remote),
 })
 
@@ -55,6 +56,17 @@ console.log(`tabs:`, tabs)
 const router = new Router(state, tabs)
 
 router.restore()
+
+function confirmAmountIfNecessary(amount) {
+  if (amount > state.maxSafeAmount) {
+    let promptResult = prompt(`You're about to print a large number of labels. To continue, please enter the requested amount below. Requested amount: ${amount}`)
+    if (promptResult === null) {
+      throw new Error(`Aborted`)
+    } else if (!(Number(promptResult) === amount)) {
+      throw new Error(`Amount not confirmed`)
+    }
+  }
+}
 
 function stopPropagation(f) {
   if (!f || typeof f !== `function`) {
@@ -173,10 +185,12 @@ function buildPrintButton() {
         try {
           state.tabs[state.nav].validate()
 
-          console.log(`print job:`, state.tabs[state.nav].getCode())
-          state.api.uploadFile(state.tabs[state.nav].getCode())
+          let job = state.tabs[state.nav].getCode()
+          
+          console.log(`print job:`, job)
+          state.api.uploadFile(job)
         } catch (err) {
-          alert(`Invalid input: ${err}`)
+          alert(err)
         }
       }}"
     >
@@ -203,10 +217,11 @@ state.tabs[tabs.PCB_QR_CODES] = buildConfig(reactive({
     prefixText: `SN:`,
   }),
   (localState) => {
-    console.log(`render`)
     return codes.generateBatchQrCode(localState.startId, localState.endId, localState.includePrefix ? localState.prefixText : null)
   },
-  (localState) => {},
+  (localState) => {
+    confirmAmountIfNecessary(localState.amount)
+  },
   (localState) => html`
     <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
       <div class="flex flex-row items-center gap-8 w-full">
@@ -310,7 +325,9 @@ state.tabs[tabs.SIMPLE_TEXT] = buildConfig(reactive({
   fontSize: 7,
 }),
 (localState) => codes.generateCenteredTextCode(localState.text, localState.amount, localState.bold, localState.manualFontSize ? localState.fontSize : -1),
-(localState) => {},
+(localState) => {
+  confirmAmountIfNecessary(localState.amount)
+},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
@@ -406,7 +423,9 @@ state.tabs[tabs.MULTI_LINE_TEXT] = buildConfig(reactive({
   lineHeight: 3,
 }),
 (localState) => codes.generateTextCode(localState.text, localState.amount, localState.manualFontSize ? localState.fontSize : -1, localState.manualLineHeight ? localState.lineHeight : -1),
-(localState) => {},
+(localState) => {
+  confirmAmountIfNecessary(localState.amount)
+},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
@@ -504,6 +523,8 @@ state.tabs[tabs.QR_CODE] = buildConfig(reactive({
   } else if (localState.includeLabel && localState.labelText.length === 0) {
     throw new Error(`Label text must not be empty if label is included`)
   }
+
+  confirmAmountIfNecessary(localState.amount)
 },
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
@@ -568,7 +589,9 @@ T 0.0,5.8,0,3,pt11,b;text[J:c9]
 A 1`,
 }),
 (localState) => codes.generateCustomCode(localState.content),
-(localState) => {},
+(localState) => {
+  confirmAmountIfNecessary(localState.amount)
+},
 (localState) => html`
   <div class="bg-background-blue px-12 py-8 bg-slate-100 rounded-2xl flex-col justify-start items-start gap-4 inline-flex">
     <div class="flex flex-row items-center gap-8 w-full">
