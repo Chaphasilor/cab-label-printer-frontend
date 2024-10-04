@@ -30,6 +30,13 @@ const backends = {
       extension: ``,
     },
   },
+  'forwarded': {
+    description: `Remote Node.js backend`,
+    config: {
+      baseUrl: `https://08shf4mf-3000.euw.devtunnels.ms`,
+      extension: ``,
+    },
+  },
 }
 
 const tabs = {

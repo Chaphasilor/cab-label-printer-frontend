@@ -21,7 +21,7 @@ export function getDynamicFontSize(text, max) {
   const maxFontSize = max || 9
   const minFontSize = 3
   const fontSizeForLine = maxFontSize / (lines.length/2.5)
-  const fontSizeForLength = maxFontSize / (maxLineLength/4.25)
+  const fontSizeForLength = maxFontSize / (maxLineLength/5.5)
 
   let fontSize = Number(Math.min(maxFontSize, Math.max(minFontSize, Math.min(fontSizeForLine, fontSizeForLength))).toFixed(2))
 
@@ -173,16 +173,18 @@ export function generateBatchQrCode(startId, endId, prefix = null, redundancyLev
   if (isNaN(startId) || isNaN(endId)) {
     return
   }
-
+  
   let labelBold = true
   
   let increment = startId < endId
+
+  const amountOfDigits = Math.ceil((String(startId).length + String(endId).length) / 2)
 
   let amount = Math.abs(endId - startId) + 1
 
   let longestIdText = String(startId).length > String(endId).length ? String(startId) : String(endId)
 
-  let idGenerator = `[SER:${startId},${increment ? `1` : `-1`},1]`
+  let idGenerator = `[SER:${String(startId).padStart(amountOfDigits, "0")},${increment ? `1` : `-1`},1]`
 
   let labelText = `${prefix ? `${prefix} ` : ``}${idGenerator}`
   
@@ -190,8 +192,8 @@ export function generateBatchQrCode(startId, endId, prefix = null, redundancyLev
   
   const maxWidth = labelProps.wd - 0.5
 
-  let content = `B 1.6,0.5,0,QRCODE+EL${redundancyLevel},0.3;${idGenerator}[J:c${maxWidth}]
-T 0,9.0,0,3,pt${fontSize}${labelBold ? `,b` : ``};${labelText}[J:c${maxWidth}]
+  let content = `B 1.5,0.5,0,QRCODE+EL${redundancyLevel},0.3;${idGenerator}[J:c${maxWidth}]
+T 0,8.5,0,3,pt${fontSize}${labelBold ? `,b` : ``};${labelText}[J:c${maxWidth}]
 `
     // T 1,9.8,0,5,pt${fontSize},v;${label}[J:l${maxWidth}]
   
